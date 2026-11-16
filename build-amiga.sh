@@ -29,9 +29,13 @@ mkdir -p "$WORK" "$OUT"; OUT=$(cd "$OUT" && pwd)
 t0=$(date +%s)
 
 # --- the PC tests first: the same sources and config, upstream's Acid800 ------
-if [ "${HOST_TESTS:-1}" != 0 ] && (PATH=$HOST_PATH; command -v "${HOST_CC:-cc}" && command -v sdl2-config) > /dev/null 2>&1; then
-    PATH=$HOST_PATH WORK="$WORK/host" sh "$HERE/tests/host-a8.sh" > "$WORK/host-tests.log" 2>&1 || { tail -30 "$WORK/host-tests.log"; exit 1; }
-    grep -E "^acid800:|checks passed" "$WORK/host-tests.log"
+if [ "${HOST_TESTS:-1}" != 0 ] && (PATH=$HOST_PATH; command -v "${HOST_CC:-cc}") > /dev/null 2>&1; then
+    rc=0; PATH=$HOST_PATH WORK="$WORK/host" sh "$HERE/tests/host-a8.sh" > "$WORK/host-tests.log" 2>&1 || rc=$?
+    case $rc in
+        0) grep -E "^acid800:|checks passed" "$WORK/host-tests.log" ;;
+        2) echo "PC tests skipped: $(tail -1 "$WORK/host-tests.log")" ;;
+        *) tail -30 "$WORK/host-tests.log"; exit 1 ;;
+    esac
 fi
 
 # --- SDL 2 from the stove's SDK ------------------------------------------------

@@ -22,13 +22,15 @@ HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16-open6"}
 # outside the checkout: Cradle cleans it (git clean -ffdx) before every job
 WORK="${WORK:-$HOME/.cache/gfamigaatari800/build}"; OUT="${OUT:-$WORK/out}"; JOBS=${JOBS:-8}
+# the PC tests run on the PC's own PATH: the stove has an sdl2-config too (GFOS's)
+HOST_PATH=$PATH
 TC="$STOVE/prefix"; PATH="$TC/bin:$PATH"; export PATH
 mkdir -p "$WORK" "$OUT"; OUT=$(cd "$OUT" && pwd)
 t0=$(date +%s)
 
 # --- the PC tests first: the same sources and config, upstream's Acid800 ------
-if [ "${HOST_TESTS:-1}" != 0 ] && command -v "${HOST_CC:-cc}" > /dev/null 2>&1 && command -v sdl2-config > /dev/null 2>&1; then
-    WORK="$WORK/host" sh "$HERE/tests/host-a8.sh" > "$WORK/host-tests.log" 2>&1 || { tail -30 "$WORK/host-tests.log"; exit 1; }
+if [ "${HOST_TESTS:-1}" != 0 ] && (PATH=$HOST_PATH; command -v "${HOST_CC:-cc}" && command -v sdl2-config) > /dev/null 2>&1; then
+    PATH=$HOST_PATH WORK="$WORK/host" sh "$HERE/tests/host-a8.sh" > "$WORK/host-tests.log" 2>&1 || { tail -30 "$WORK/host-tests.log"; exit 1; }
     grep -E "^acid800:|checks passed" "$WORK/host-tests.log"
 fi
 

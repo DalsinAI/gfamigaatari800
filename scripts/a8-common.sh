@@ -57,7 +57,13 @@ a8_probe() {
                  rename rewind rmdir signal snprintf stat strcasecmp strchr strdup \
                  strerror strncpy strrchr strstr strtol system time tmpfile tmpnam \
                  unlink usleep vprintf vsnprintf; do
-            printf 'char %s(void);\nint main(void) { return (int)%s(); }\n' "$f" "$f" > "$t/p.c"
+            # found by the link AND declared by the C library's headers (libnix
+            # links fseeko but declares it nowhere): else upstream's fallback
+            printf '%s\n' '#include <stdio.h>' '#include <stdlib.h>' '#include <string.h>' \
+                '#include <strings.h>' '#include <unistd.h>' '#include <time.h>' '#include <sys/time.h>' \
+                '#include <sys/stat.h>' '#include <sys/types.h>' '#include <dirent.h>' '#include <signal.h>' \
+                '#include <math.h>' '#include <stdarg.h>' > "$t/p.c"
+            printf 'int main(void) { void (*volatile p)(void) = (void (*)(void))%s; return p != 0; }\n' "$f" >> "$t/p.c"
             # shellcheck disable=SC2086
             if $PROBE_CC -o "$t/p" "$t/p.c" -lm > /dev/null 2>&1; then
                 echo "#define HAVE_$(echo "$f" | tr '[:lower:]' '[:upper:]') 1"

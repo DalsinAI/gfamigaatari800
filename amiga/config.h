@@ -81,6 +81,12 @@
 /* AmigaDOS paths (patches/0001): settings and ROMs in the program's drawer */
 #define A8_AMIGA_PATHS 1
 #define DEFAULT_CFG_NAME "atari800.cfg"
+/* ide.c calls fseeko/ftello; where the C library declares none (libnix),
+   the plain ones: disk images under 2 GB */
+#ifndef HAVE_FSEEKO
+#define fseeko fseek
+#define ftello ftell
+#endif
 #endif
 
 #endif

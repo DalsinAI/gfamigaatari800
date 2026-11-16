@@ -1,0 +1,8 @@
+# What this port builds on: fetched at build time, never shipped.
+# Atari800 (GPL 2 or later) master 98cc2dc (20 Oct 2026), 7.2.1 and 18
+# commits: the Acid800 suite and the playback test that "make check" runs
+A8_GIT=https://github.com/atari800/atari800.git
+A8_COMMIT=98cc2dc749867c9c7317a0271ba062a6c797f886
+A8_VERSION=7.2.1
+# SDL 2 is the stove's (GFOpenGPU's link stubs, lib/libSDL2.a); at run time
+# it is the GFOpenGPU part's SDL2.module

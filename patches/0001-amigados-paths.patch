@@ -1,0 +1,46 @@
+--- a/src/util.c
++++ b/src/util.c
+@@ -328,6 +328,19 @@
+ 	const char *p;
+ 	/* find the last Util_DIR_SEP_CHAR except the last character */
+ 	for (p = path + strlen(path) - 2; p >= path; p--) {
++#ifdef A8_AMIGA_PATHS
++		/* AmigaDOS: a volume or assign ends at its colon, which stays in
++		   dir_part ("PROGDIR:atari800.cfg" -> "PROGDIR:") */
++		if (*p == ':') {
++			if (dir_part != NULL) {
++				memcpy(dir_part, path, p - path + 1);
++				dir_part[p - path + 1] = '\0';
++			}
++			if (file_part != NULL)
++				strcpy(file_part, p + 1);
++			return;
++		}
++#endif
+ 		if (*p == Util_DIR_SEP_CHAR
+ #ifdef DIR_SEP_BACKSLASH
+ /* on DOSish systems slash can be also used as a directory separator */
+@@ -360,6 +373,10 @@
+ #ifdef DIR_SEP_BACKSLASH
+ 	no_sep = no_sep || path2[0] == '/' || path1[strlen(path1) - 1] == '/';
+ #endif
++#ifdef A8_AMIGA_PATHS
++	/* "PROGDIR:" + "x" is "PROGDIR:x" ("PROGDIR:/x" would be its parent) */
++	no_sep = no_sep || path1[strlen(path1) - 1] == ':';
++#endif
+ 	snprintf(result, FILENAME_MAX, no_sep ? "%s%s" : "%s" Util_DIR_SEP_STR "%s", path1, path2);
+ }
+ 
+--- a/src/atari.c
++++ b/src/atari.c
+@@ -466,6 +466,10 @@
+ 
+ 	if (*argc > 0 && argv[0] != NULL)
+ 		Util_splitpath(argv[0], atari800_exe_dir, NULL);
++#ifdef A8_AMIGA_PATHS
++	/* the program's own drawer, however it was started (Shell or Workbench) */
++	strcpy(atari800_exe_dir, "PROGDIR:");
++#endif
+ 
+ 	if (cfg_source_path == NULL && atari800_exe_dir[0] != '\0') {
+ 		char checkfile[FILENAME_MAX];
